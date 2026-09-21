@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free .reg File Viewer — Preview Windows Registry Changes Online</title>
+<meta name="description" content="Open a Windows .reg (Registry Editor) file and see exactly what it will do before you double-click it: every key it creates or deletes, every value it sets, in plain language. Entirely in your browser, nothing uploaded.">
+<link rel="stylesheet" href="https://gazetheeupon.github.io/shared-assets/theme.css?v=2">
+<link rel="canonical" href="https://gazetheeupon.github.io/reg-previewer/">
+<meta property="og:title" content="Free .reg File Viewer">
+<meta property="og:description" content="See exactly what a Windows .reg file will change before importing it: keys created or deleted, values set, all decoded in plain language. Entirely in your browser.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gazetheeupon.github.io/reg-previewer/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Free .reg File Viewer">
+<meta name="twitter:description" content="See exactly what a Windows .reg file will change before importing it: keys created or deleted, values set, all decoded in plain language. Entirely in your browser.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Free .reg File Viewer",
+  "url": "https://gazetheeupon.github.io/reg-previewer/",
+  "description": "Open a Windows .reg (Registry Editor) file and see exactly what it will do before you double-click it: every key it creates or deletes, every value it sets, decoded in plain language. Entirely in your browser.",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any (runs in web browser)",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<style>
+  :root{--bg:#0f1720;--card:#1a2532;--text:#e8edf2;--muted:#93a3b3;--accent:#4fa8ff;--border:#2a3745;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;}
+  header{padding:2rem 1rem 1rem;text-align:center;}
+  h1{font-size:1.6rem;margin:0 0 .4rem;}
+  p.sub{color:var(--muted);margin:0 auto;max-width:660px;}
+  main{max-width:820px;margin:0 auto;padding:1.5rem 1rem 3rem;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.2rem;}
+  .dropzone{border:2px dashed var(--border);border-radius:10px;padding:2.2rem 1rem;text-align:center;cursor:pointer;transition:border-color .15s;}
+  .dropzone.drag{border-color:var(--accent);}
+  .dropzone input{display:none;}
+  .dropzone .hint{color:var(--muted);font-size:.9rem;margin-top:.4rem;}
+  .fname{font-size:.9rem;color:var(--text);margin-top:.6rem;word-break:break-all;}
+  #status{color:var(--muted);font-size:.9rem;margin-top:.8rem;min-height:1.2em;white-space:pre-line;}
+  #status.error{color:#ff8080;}
+  h2{font-size:1rem;margin:1.2rem 0 .6rem;color:var(--text);}
+  #results .entry:first-child h2{margin-top:0;}
+  #summaryText{font-size:.95rem;}
+  .badge{display:inline-block;background:var(--accent);color:#04121f;font-size:.7rem;font-weight:700;border-radius:5px;padding:.15rem .55rem;vertical-align:middle;margin-left:.4rem;}
+  .badge-del{background:#e0555c;}
+  table{width:100%;border-collapse:collapse;font-size:.85rem;}
+  td{padding:.4rem .5rem;border-bottom:1px solid var(--border);vertical-align:top;word-break:break-word;}
+  td:first-child{color:var(--text);white-space:nowrap;font-weight:600;width:26%;}
+  .type-cell{color:var(--muted);white-space:nowrap;width:16%;}
+  tr.del-row td{color:#ffb0a8;font-style:italic;}
+  p.note{color:var(--muted);font-size:.85rem;margin:.2rem 0 .4rem;}
+  #warningsList{margin:.4rem 0 0;padding-left:1.2rem;color:#ffcf8a;font-size:.85rem;}
+  #warningsList li{margin-bottom:.3rem;}
+  #exportRow{display:none;gap:.6rem;margin-top:.2rem;}
+  button.exp{background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:8px;padding:.55rem 1.1rem;font-size:.88rem;font-weight:600;cursor:pointer;}
+  .privacy{font-size:.85rem;color:var(--muted);}
+  .privacy strong{color:var(--text);}
+  .cli-block{background:#0b131a;border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem;font-family:ui-monospace,Consolas,monospace;font-size:.85rem;color:var(--text);white-space:pre-wrap;word-break:break-all;}
+</style>
+</head>
+<body>
+<header>
+  <h1>.reg File Viewer</h1>
+  <p class="sub">Drop in a Windows <code>.reg</code> (Registry Editor export) file to see exactly what it will do before you double-click it: every key it creates or deletes, every value it sets, decoded in plain language &mdash; no Windows machine, no registry actually touched.</p>
+</header>
+<main>
+  <div class="card">
+    <div class="dropzone" id="dropzone">
+      <div>Drop a .reg file here, or click to choose</div>
+      <div class="hint">Windows Registry Editor 5.00 or legacy REGEDIT4 format</div>
+      <input type="file" id="fileInput" accept=".reg">
+    </div>
+    <div class="fname" id="fname"></div>
+    <div id="status"></div>
+  </div>
+
+  <div class="card" id="summaryCard" style="display:none;">
+    <h2>Summary <span class="badge" id="summaryBadge"></span></h2>
+    <p id="summaryText"></p>
+    <div id="exportRow">
+      <button class="exp" id="exportJsonBtn">Export JSON</button>
+      <button class="exp" id="exportCsvBtn">Export CSV</button>
+    </div>
+  </div>
+
+  <div class="card" id="warningsCard" style="display:none;">
+    <h2>Notes</h2>
+    <ul id="warningsList"></ul>
+  </div>
+
+  <div class="card" id="resultsCard" style="display:none;">
+    <div id="results"></div>
+  </div>
+
+  <div class="card">
+    <p class="privacy"><strong>How this works:</strong> this page parses the <code>.reg</code> text format Windows' own Registry Editor writes and reads &mdash; both the modern "Windows Registry Editor Version 5.00" format (Unicode) and the legacy <code>REGEDIT4</code> format (ANSI) &mdash; directly in your browser tab. The file is read with the File API and never uploaded anywhere; nothing is imported into any registry.</p>
+    <p class="privacy" style="margin-top:.6rem;"><strong>Every value type is decoded</strong>, not just shown as raw hex: strings, expandable strings, DWORDs and QWORDs (32- and 64-bit numbers), multi-string lists, and binary data. A key or value prefixed with a minus sign in the file (Registry Editor's own deletion syntax) is called out as a deletion, not confused with a normal change.</p>
+  </div>
+
+  <div class="card faq">
+    <h2>Why check a .reg file before running it</h2>
+    <p class="privacy">Double-clicking a <code>.reg</code> file merges it straight into the registry with no preview and, by default, no undo. It's also a common way to distribute a persistence mechanism, a browser hijack, or a policy tweak disguised as a "fix" &mdash; the file itself is plain text, but nothing shows you what it actually changes until it's already done. This page decodes it first, so you can see every key and value before deciding whether to import it for real.</p>
+  </div>
+
+  <div class="card faq">
+    <h2>Troubleshooting</h2>
+    <details><summary>My file won't open at all</summary>
+      <p>This page expects a standard Registry Editor export: the first line should read <code>Windows Registry Editor Version 5.00</code> or <code>REGEDIT4</code>. A file that's been re-saved with a text editor in the wrong encoding, or that isn't actually a .reg export, will be rejected rather than guessed at.</p>
+    </details>
+    <details><summary>A value shows as "could not decode"</summary>
+      <p>This means the byte data after a <code>hex:</code> or <code>hex(N):</code> prefix didn't parse as a valid comma-separated byte list &mdash; usually a sign the file was hand-edited or corrupted. Everything else in the file is still shown normally.</p>
+    </details>
+    <details><summary>What does "will be deleted" mean?</summary>
+      <p>A key written as <code>[-Key\Path]</code>, or a value written as <code>"Name"=-</code>, tells Registry Editor to remove that key or value rather than set it. This page shows those the same way Registry Editor would apply them, rather than treating the minus sign as ordinary data.</p>
+    </details>
+  </div>
+
+  <div class="card cli">
+    <h2>Prefer the command line?</h2>
+    <div class="cli-block">reg import file.reg</div>
+    <p class="privacy">That's the Windows command that actually applies a .reg file &mdash; there's no built-in command-line way to preview one first, which is the gap this page fills. On Windows, <code>Get-Content file.reg</code> in PowerShell will at least show you the raw text.</p>
+  </div>
+
+  <div id="ad-slot"></div>
+</main>
+<script src="reg-parser.js"></script>
+<script src="app.js"></script>
+<script defer src="https://gazetheeupon.github.io/shared-assets/site.js"></script>
+</body>
+</html>
