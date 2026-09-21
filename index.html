@@ -61,6 +61,38 @@
   .privacy strong{color:var(--text);}
   .cli-block{background:#0b131a;border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem;font-family:ui-monospace,Consolas,monospace;font-size:.85rem;color:var(--text);white-space:pre-wrap;word-break:break-all;}
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "My file won't open at all",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "This page expects a standard Registry Editor export: the first line should read Windows Registry Editor Version 5.00 or REGEDIT4 . A file that's been re-saved with a text editor in the wrong encoding, or that isn't actually a .reg export, will be rejected rather than guessed at."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "A value shows as \"could not decode\"",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "This means the byte data after a hex: or hex(N): prefix didn't parse as a valid comma-separated byte list \u2014 usually a sign the file was hand-edited or corrupted. Everything else in the file is still shown normally."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What does \"will be deleted\" mean?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A key written as [-Key\\Path] , or a value written as \"Name\"=- , tells Registry Editor to remove that key or value rather than set it. This page shows those the same way Registry Editor would apply them, rather than treating the minus sign as ordinary data."
+      }
+    }
+  ]
+}
+</script>
 </head>
 <body>
 <header>
